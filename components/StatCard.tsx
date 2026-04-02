@@ -15,9 +15,9 @@ export function StatCard({ title, value, icon, description, onClick, headerActio
       onClick={onClick}
       className={`bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex flex-col gap-4 shadow-lg transition-colors ${onClick ? 'cursor-pointer hover:border-green-500/50 hover:bg-zinc-800' : 'hover:border-zinc-700'}`}
     >
-      <div className="flex items-center justify-between">
-        <h3 className="text-zinc-400 font-medium text-sm truncate pr-2">{title}</h3>
-        <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center justify-between gap-2 border-b border-zinc-800/50 pb-3">
+        <h3 className="text-zinc-400 font-medium text-[13px] whitespace-nowrap">{title}</h3>
+        <div className="flex items-center gap-3 shrink-0">
           {headerAction}
           <div className="text-green-500">{icon}</div>
         </div>

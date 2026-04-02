@@ -8,7 +8,6 @@ import { FileUpload } from "./FileUpload";
 import { StatCard } from "./StatCard";
 import { TopList } from "./TopList";
 import { HistoryChart } from "./HistoryChart";
-import { TimeOfDayChart } from "./TimeOfDayChart";
 import { DiscoveryChart } from "./DiscoveryChart";
 import { ArtistPieChart } from "./ArtistPieChart";
 import { SkippedTracksList } from "./SkippedTracksList";
@@ -24,6 +23,7 @@ export function Dashboard() {
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [totalListeningMode, setTotalListeningMode] = useState<'time' | 'plays'>('time');
+  const [uniqueStatsMode, setUniqueStatsMode] = useState<'artists' | 'tracks'>('artists');
 
   const handleDownloadImage = async () => {
     const element = document.getElementById("dashboard-capture");
@@ -135,11 +135,11 @@ export function Dashboard() {
   const formatHours = (ms: number) => Math.round(ms / (1000 * 60 * 60)).toLocaleString();
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 relative bg-[#0a0a0a] p-5 md:p-8 rounded-3xl border border-zinc-900 shadow-2xl" id="dashboard-capture">
+    <div className="space-y-6 animate-in fade-in duration-500 relative bg-[#0a0a0a] p-6 md:p-10 rounded-3xl border border-zinc-900 shadow-2xl" id="dashboard-capture">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-1">Your Listening Dashboard</h1>
-          <p className="text-zinc-400 text-xs">
+          <h1 className="text-4xl font-bold text-white mb-1">Your Listening Dashboard</h1>
+          <p className="text-zinc-400 text-sm">
             Based on {stats.totalHoursPlayed.toLocaleString()} total hours of listening
           </p>
         </div>
@@ -166,112 +166,131 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <StatCard 
-          title="Total Listening"
-          value={totalListeningMode === 'time' ? `${stats.totalHoursPlayed.toLocaleString()}h` : stats.totalPlays.toLocaleString()}
-          icon={<Clock className="w-5 h-5" />}
-          description={totalListeningMode === 'time' ? "All time total including podcasts" : "Total tracks played"}
-          headerAction={
-            <div className="flex bg-zinc-950 rounded-lg p-0.5 border border-zinc-800 shadow-inner">
-              <button 
-                onClick={(e) => { e.stopPropagation(); setTotalListeningMode('plays'); }}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'plays' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                Plays
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); setTotalListeningMode('time'); }}
-                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'time' ? 'bg-zinc-800 text-purple-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
-              >
-                Time
-              </button>
+      <div className="flex flex-col gap-4">
+        {/* Top: Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            title="Total Listening"
+            value={totalListeningMode === 'time' ? `${stats.totalHoursPlayed.toLocaleString()}h` : stats.totalPlays.toLocaleString()}
+            icon={<Clock className="w-5 h-5" />}
+            description={totalListeningMode === 'time' ? "All time total including podcasts" : "Total tracks played"}
+            headerAction={
+              <div className="flex bg-zinc-950 rounded-lg p-0.5 border border-zinc-800 shadow-inner w-fit">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setTotalListeningMode('plays'); }}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'plays' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Plays
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setTotalListeningMode('time'); }}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'time' ? 'bg-zinc-800 text-purple-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Time
+                </button>
+              </div>
+            }
+          />
+          <StatCard 
+            title="Unique Library" 
+            value={uniqueStatsMode === 'artists' ? stats.uniqueArtistsCount.toLocaleString() : stats.uniqueTracksCount.toLocaleString()}
+            icon={uniqueStatsMode === 'artists' ? <Disc className="w-5 h-5" /> : <Music className="w-5 h-5" />}
+            description={uniqueStatsMode === 'artists' ? "Total unique artists" : "Total unique songs"}
+            headerAction={
+              <div className="flex bg-zinc-950 rounded-lg p-0.5 border border-zinc-800 shadow-inner w-fit">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setUniqueStatsMode('artists'); }}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${uniqueStatsMode === 'artists' ? 'bg-zinc-800 text-purple-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Artists
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setUniqueStatsMode('tracks'); }}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${uniqueStatsMode === 'tracks' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+                >
+                  Tracks
+                </button>
+              </div>
+            }
+          />
+          <StatCard 
+            title="One-Hit Wonders" 
+            value={stats.oneHitWondersCount.toLocaleString()}
+            icon={<Ghost className="w-5 h-5" />}
+            description="Click to view ->"
+            onClick={() => setActiveModal('oneHitWonders')}
+          />
+          <StatCard 
+            title="Top Artist" 
+            value={stats.topArtistsByTime[0]?.name || "N/A"}
+            icon={<Mic2 className="w-5 h-5" />}
+            description={`${formatHours(stats.topArtistsByTime[0]?.msPlayed || 0)} hours`}
+          />
+        </div>
+
+        {/* Middle: Main Charts (left) and Side Charts (right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+          <div className="lg:col-span-2 flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
+              <HistoryChart data={stats.historyByMonth} />
+              <DiscoveryChart 
+                data={stats.discoveryByMonth} 
+                onViewDetails={() => setShowDiscoveryLog(true)}
+              />
             </div>
-          }
-        />
-        <StatCard 
-          title="Unique Tracks" 
-          value={stats.uniqueTracksCount.toLocaleString()}
-          icon={<Music className="w-5 h-5" />}
-          description="Total different songs"
-        />
-        <StatCard 
-          title="Unique Artists" 
-          value={stats.uniqueArtistsCount.toLocaleString()}
-          icon={<Disc className="w-5 h-5" />}
-          description="Click to view ->"
-          onClick={() => setActiveModal('artists')}
-        />
-        <StatCard 
-          title="One-Hit Wonders" 
-          value={stats.oneHitWondersCount.toLocaleString()}
-          icon={<Ghost className="w-5 h-5" />}
-          description="Click to view ->"
-          onClick={() => setActiveModal('oneHitWonders')}
-        />
-        <StatCard 
-          title="Top Artist" 
-          value={stats.topArtistsByTime[0]?.name || "N/A"}
-          icon={<Mic2 className="w-5 h-5" />}
-          description={`${formatHours(stats.topArtistsByTime[0]?.msPlayed || 0)} hours`}
-        />
+            {/* Bottom 3 Lists aligned Left */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-auto">
+              <TopList 
+                title="Top Artists"
+                icon={<Mic2 className="w-5 h-5" />}
+                defaultSort="time"
+                itemsByTime={stats.topArtistsByTime.slice(0, 50).map(a => ({
+                  id: a.name,
+                  title: a.name,
+                  value: `${formatHours(a.msPlayed)}h`,
+                  url: `https://open.spotify.com/search/${encodeURIComponent(a.name)}`
+                }))}
+                itemsByPlays={stats.topArtistsByPlays.slice(0, 50).map(a => ({
+                  id: a.name,
+                  title: a.name,
+                  value: `${a.count} plays`,
+                  url: `https://open.spotify.com/search/${encodeURIComponent(a.name)}`
+                }))}
+              />
+              <TopList 
+                title="Top Tracks"
+                icon={<PlayCircle className="w-5 h-5" />}
+                defaultSort="plays"
+                itemsByTime={stats.topTracksByTime.slice(0, 50).map(t => {
+                  const trackId = t.uri ? t.uri.replace('spotify:track:', '') : '';
+                  return {
+                    id: `${t.name}-${t.artist}`,
+                    title: t.name,
+                    subtitle: t.artist,
+                    value: `${formatHours(t.msPlayed)}h`,
+                    url: trackId ? `https://open.spotify.com/track/${trackId}` : `https://open.spotify.com/search/${encodeURIComponent(t.name + " " + t.artist)}`
+                  };
+                })}
+                itemsByPlays={stats.topTracksByPlays.slice(0, 50).map(t => {
+                   const trackId = t.uri ? t.uri.replace('spotify:track:', '') : '';
+                   return {
+                     id: `${t.name}-${t.artist}`,
+                     title: t.name,
+                     subtitle: t.artist,
+                     value: `${t.count} plays`,
+                     url: trackId ? `https://open.spotify.com/track/${trackId}` : `https://open.spotify.com/search/${encodeURIComponent(t.name + " " + t.artist)}`
+                   };
+                })}
+              />
+              <SkippedTracksList items={stats.skippedTracks} />
+            </div>
+          </div>
+          <div className="lg:col-span-1 flex flex-col gap-4 h-full min-h-[500px]">
+            <ArtistPieChart artists={stats.allArtists} totalMs={stats.totalMsPlayed} totalPlays={stats.totalPlays} />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-        <HistoryChart data={stats.historyByMonth} />
-        <DiscoveryChart 
-          data={stats.discoveryByMonth} 
-          onViewDetails={() => setShowDiscoveryLog(true)}
-        />
-        <ArtistPieChart artists={stats.allArtists} totalMs={stats.totalMsPlayed} />
-        <TimeOfDayChart data={stats.timeOfDay} />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <TopList 
-          title="Top Artists"
-          icon={<Mic2 className="w-5 h-5" />}
-          defaultSort="time"
-          itemsByTime={stats.topArtistsByTime.slice(0, 50).map(a => ({
-            id: a.name,
-            title: a.name,
-            value: `${formatHours(a.msPlayed)}h`,
-            url: `https://open.spotify.com/search/${encodeURIComponent(a.name)}`
-          }))}
-          itemsByPlays={stats.topArtistsByPlays.slice(0, 50).map(a => ({
-            id: a.name,
-            title: a.name,
-            value: `${a.count} plays`,
-            url: `https://open.spotify.com/search/${encodeURIComponent(a.name)}`
-          }))}
-        />
-        <TopList 
-          title="Top Tracks"
-          icon={<PlayCircle className="w-5 h-5" />}
-          defaultSort="plays"
-          itemsByTime={stats.topTracksByTime.slice(0, 50).map(t => {
-            const trackId = t.uri ? t.uri.replace('spotify:track:', '') : '';
-            return {
-              id: `${t.name}-${t.artist}`,
-              title: t.name,
-              subtitle: t.artist,
-              value: `${formatHours(t.msPlayed)}h`,
-              url: trackId ? `https://open.spotify.com/track/${trackId}` : `https://open.spotify.com/search/${encodeURIComponent(t.name + " " + t.artist)}`
-            };
-          })}
-          itemsByPlays={stats.topTracksByPlays.slice(0, 50).map(t => {
-             const trackId = t.uri ? t.uri.replace('spotify:track:', '') : '';
-             return {
-               id: `${t.name}-${t.artist}`,
-               title: t.name,
-               subtitle: t.artist,
-               value: `${t.count} plays`,
-               url: trackId ? `https://open.spotify.com/track/${trackId}` : `https://open.spotify.com/search/${encodeURIComponent(t.name + " " + t.artist)}`
-             };
-          })}
-        />
-        <SkippedTracksList items={stats.skippedTracks} />
-      </div>
 
       {/* Modals */}
       <Modal 

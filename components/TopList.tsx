@@ -28,7 +28,7 @@ export function TopList({ title, icon, items, itemsByTime, itemsByPlays, default
   if (!displayItems) return null;
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[400px] flex flex-col">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[460px] flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-white font-semibold text-lg flex items-center gap-2">
           {icon}

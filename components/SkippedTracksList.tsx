@@ -14,7 +14,7 @@ interface SkippedTracksListProps {
 
 export function SkippedTracksList({ items }: SkippedTracksListProps) {
   return (
-    <div className="bg-zinc-900 bg-opacity-70 border border-red-900/30 rounded-xl p-6 flex flex-col gap-4 shadow-lg backdrop-blur-sm h-[380px]">
+    <div className="bg-zinc-900 bg-opacity-70 border border-red-900/30 rounded-xl p-6 flex flex-col gap-4 shadow-lg backdrop-blur-sm h-[460px]">
       <div className="flex justify-between items-start mb-2 shrink-0">
          <div className="flex items-center gap-2">
            <AlertTriangle className="w-5 h-5 text-red-500" />

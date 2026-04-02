@@ -22,7 +22,7 @@ export function TimeOfDayChart({ data }: TimeOfDayChartProps) {
   }));
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[180px] flex flex-col">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg shrink-0 h-[180px] flex flex-col w-full">
       <h3 className="text-white font-semibold text-lg mb-6 flex items-center gap-2">
         <Sun className="w-5 h-5 text-yellow-500" />
         Listening by Time of Day (Hours)
