@@ -22,7 +22,10 @@ export function ArtistPieChart({ artists, totalMs }: ArtistPieChartProps) {
   const othersMs = totalMs - topMs;
 
   const data = [
-    ...topArtists.map(a => ({ name: a.name, value: a.msPlayed })),
+    ...topArtists.map(a => ({ 
+      name: a.name.length > 14 ? a.name.substring(0, 14) + '...' : a.name, 
+      value: a.msPlayed 
+    })),
     { name: 'Others', value: othersMs }
   ];
   
@@ -44,10 +47,10 @@ export function ArtistPieChart({ artists, totalMs }: ArtistPieChartProps) {
           <PieChart>
             <Pie
               data={data}
-              cx="50%"
+              cx="35%"
               cy="50%"
-              innerRadius={40}
-              outerRadius={75}
+              innerRadius={35}
+              outerRadius={70}
               fill="#8884d8"
               paddingAngle={2}
               dataKey="value"

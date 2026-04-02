@@ -168,11 +168,26 @@ export function Dashboard() {
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard 
-          title={totalListeningMode === 'time' ? "Total Listening Time" : "Total Songs Played"} 
+          title="Total Listening"
           value={totalListeningMode === 'time' ? `${stats.totalHoursPlayed.toLocaleString()}h` : stats.totalPlays.toLocaleString()}
           icon={<Clock className="w-5 h-5" />}
-          description="Click to toggle (Time/Plays)"
-          onClick={() => setTotalListeningMode(m => m === 'time' ? 'plays' : 'time')}
+          description={totalListeningMode === 'time' ? "All time total including podcasts" : "Total tracks played"}
+          headerAction={
+            <div className="flex bg-zinc-950 rounded-lg p-0.5 border border-zinc-800 shadow-inner">
+              <button 
+                onClick={(e) => { e.stopPropagation(); setTotalListeningMode('plays'); }}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'plays' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Plays
+              </button>
+              <button 
+                onClick={(e) => { e.stopPropagation(); setTotalListeningMode('time'); }}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-all ${totalListeningMode === 'time' ? 'bg-zinc-800 text-purple-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Time
+              </button>
+            </div>
+          }
         />
         <StatCard 
           title="Unique Tracks" 
