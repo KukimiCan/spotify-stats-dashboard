@@ -18,7 +18,7 @@ interface DiscoveryChartProps {
 
 export function DiscoveryChart({ data, onViewDetails }: DiscoveryChartProps) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[280px] flex flex-col relative overflow-hidden group">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[220px] flex flex-col relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
         <Compass className="w-64 h-64 text-purple-500" />
       </div>

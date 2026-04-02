@@ -16,6 +16,8 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
   const skipMap: Record<string, { name: string; artist: string; plays: number; skips: number; uri: string | null }> = {};
   
   const uniqueArtists = new Set<string>();
+  const uniqueTracks = new Set<string>();
+  let totalPlays = 0;
   const discoveryMap: Record<string, string[]> = {};
 
   sortedData.forEach((item) => {
@@ -28,6 +30,8 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
       const artist = item.master_metadata_album_artist_name!;
       const track = item.master_metadata_track_name!;
       const trackKey = `${artist} - ${track}`;
+
+      uniqueTracks.add(trackKey);
 
       // Discovery tracking (First time we see this artist!)
       if (!uniqueArtists.has(artist)) {
@@ -70,6 +74,8 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
 
         trackMap[trackKey].msPlayed += item.ms_played;
         trackMap[trackKey].count += 1;
+        
+        totalPlays += 1;
       }
     }
 
@@ -159,6 +165,7 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
   return {
     totalMsPlayed,
     totalHoursPlayed: Math.round(totalMsPlayed / (1000 * 60 * 60)),
+    totalPlays,
     topArtistsByTime,
     topArtistsByPlays,
     topTracksByTime,
@@ -169,6 +176,7 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
     skippedTracks,
     discoveryByMonth,
     uniqueArtistsCount,
+    uniqueTracksCount: uniqueTracks.size,
     oneHitWondersCount,
     allArtists,
     oneHitWonders

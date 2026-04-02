@@ -27,6 +27,7 @@ export interface SpotifyHistoryItem {
 export interface StatsData {
   totalMsPlayed: number;
   totalHoursPlayed: number;
+  totalPlays: number;
   topArtistsByTime: Array<{ name: string; msPlayed: number; count: number }>;
   topArtistsByPlays: Array<{ name: string; msPlayed: number; count: number }>;
   topTracksByTime: Array<{ name: string; artist: string; msPlayed: number; count: number; uri: string | null }>;
@@ -37,6 +38,7 @@ export interface StatsData {
   skippedTracks: Array<{ name: string; artist: string; skipRatio: number; totalPlays: number; skips: number; uri: string | null }>;
   discoveryByMonth: Array<{ month: string; newArtists: number; artists: string[] }>;
   uniqueArtistsCount: number;
+  uniqueTracksCount: number;
   oneHitWondersCount: number;
   allArtists: Array<{ name: string; msPlayed: number; count: number }>;
   oneHitWonders: Array<{ name: string }>;

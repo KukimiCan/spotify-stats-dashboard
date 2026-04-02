@@ -22,7 +22,7 @@ export function HistoryChart({ data }: HistoryChartProps) {
   }));
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[280px] flex flex-col">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 shadow-lg h-[220px] flex flex-col">
       <h3 className="text-white font-semibold text-lg mb-6">Listening Time Over Time (Hours)</h3>
       <div className="flex-1 w-full relative">
         <ResponsiveContainer width="100%" height="100%">

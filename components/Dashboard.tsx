@@ -10,6 +10,7 @@ import { TopList } from "./TopList";
 import { HistoryChart } from "./HistoryChart";
 import { TimeOfDayChart } from "./TimeOfDayChart";
 import { DiscoveryChart } from "./DiscoveryChart";
+import { ArtistPieChart } from "./ArtistPieChart";
 import { SkippedTracksList } from "./SkippedTracksList";
 import { Modal } from "./Modal";
 import { Clock, Music, Mic2, PlayCircle, Loader2, Disc, Ghost, Compass, Calendar, ChevronDown, Info, Download } from "lucide-react";
@@ -22,6 +23,7 @@ export function Dashboard() {
   const [showDiscoveryLog, setShowDiscoveryLog] = useState(false);
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [totalListeningMode, setTotalListeningMode] = useState<'time' | 'plays'>('time');
 
   const handleDownloadImage = async () => {
     const element = document.getElementById("dashboard-capture");
@@ -133,11 +135,11 @@ export function Dashboard() {
   const formatHours = (ms: number) => Math.round(ms / (1000 * 60 * 60)).toLocaleString();
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 relative bg-[#0a0a0a] p-6 md:p-10 rounded-3xl border border-zinc-900 shadow-2xl" id="dashboard-capture">
+    <div className="space-y-4 animate-in fade-in duration-500 relative bg-[#0a0a0a] p-5 md:p-8 rounded-3xl border border-zinc-900 shadow-2xl" id="dashboard-capture">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white mb-1">Your Listening Dashboard</h1>
-          <p className="text-zinc-400 text-sm">
+          <h1 className="text-3xl font-bold text-white mb-1">Your Listening Dashboard</h1>
+          <p className="text-zinc-400 text-xs">
             Based on {stats.totalHoursPlayed.toLocaleString()} total hours of listening
           </p>
         </div>
@@ -164,25 +166,32 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <StatCard 
-          title="Total Listening Time" 
-          value={`${stats.totalHoursPlayed.toLocaleString()}h`}
+          title={totalListeningMode === 'time' ? "Total Listening Time" : "Total Songs Played"} 
+          value={totalListeningMode === 'time' ? `${stats.totalHoursPlayed.toLocaleString()}h` : stats.totalPlays.toLocaleString()}
           icon={<Clock className="w-5 h-5" />}
-          description="All time total including podcasts"
+          description="Click to toggle (Time/Plays)"
+          onClick={() => setTotalListeningMode(m => m === 'time' ? 'plays' : 'time')}
+        />
+        <StatCard 
+          title="Unique Tracks" 
+          value={stats.uniqueTracksCount.toLocaleString()}
+          icon={<Music className="w-5 h-5" />}
+          description="Total different songs"
         />
         <StatCard 
           title="Unique Artists" 
           value={stats.uniqueArtistsCount.toLocaleString()}
           icon={<Disc className="w-5 h-5" />}
-          description="Click to view all artists ->"
+          description="Click to view ->"
           onClick={() => setActiveModal('artists')}
         />
         <StatCard 
           title="One-Hit Wonders" 
           value={stats.oneHitWondersCount.toLocaleString()}
           icon={<Ghost className="w-5 h-5" />}
-          description="Click to view one-offs ->"
+          description="Click to view ->"
           onClick={() => setActiveModal('oneHitWonders')}
         />
         <StatCard 
@@ -193,16 +202,17 @@ export function Dashboard() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <HistoryChart data={stats.historyByMonth} />
         <DiscoveryChart 
           data={stats.discoveryByMonth} 
           onViewDetails={() => setShowDiscoveryLog(true)}
         />
+        <ArtistPieChart artists={stats.allArtists} totalMs={stats.totalMsPlayed} />
         <TimeOfDayChart data={stats.timeOfDay} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <TopList 
           title="Top Artists"
           icon={<Mic2 className="w-5 h-5" />}
