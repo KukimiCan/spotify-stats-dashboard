@@ -15,9 +15,11 @@ interface TopListProps {
   itemsByTime?: TopListItem[];
   itemsByPlays?: TopListItem[];
   defaultSort?: 'time' | 'plays';
+  actionIcon?: ReactNode;
+  onItemAction?: (item: TopListItem) => void;
 }
 
-export function TopList({ title, icon, items, itemsByTime, itemsByPlays, defaultSort = 'plays' }: TopListProps) {
+export function TopList({ title, icon, items, itemsByTime, itemsByPlays, defaultSort = 'plays', actionIcon, onItemAction }: TopListProps) {
   const [sortBy, setSortBy] = useState<'time' | 'plays'>(defaultSort);
   const showToggle = !!itemsByTime && !!itemsByPlays;
 
@@ -76,8 +78,23 @@ export function TopList({ title, icon, items, itemsByTime, itemsByPlays, default
                   {item.subtitle && <p className="text-zinc-500 text-sm truncate">{item.subtitle}</p>}
                 </div>
               </div>
-              <div className="text-zinc-400 text-sm whitespace-nowrap ml-4">
-                {item.value}
+              <div className="flex items-center gap-2 ml-4">
+                <div className="text-zinc-400 text-sm whitespace-nowrap">
+                  {item.value}
+                </div>
+                {onItemAction && actionIcon && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onItemAction(item);
+                    }}
+                    className="p-1.5 text-zinc-500 hover:text-green-400 hover:bg-zinc-800 rounded-md transition-colors opacity-60 hover:opacity-100"
+                    title={`View ${item.title} insights`}
+                  >
+                    {actionIcon}
+                  </button>
+                )}
               </div>
             </div>
           );

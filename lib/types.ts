@@ -42,4 +42,21 @@ export interface StatsData {
   oneHitWondersCount: number;
   allArtists: Array<{ name: string; msPlayed: number; count: number }>;
   oneHitWonders: Array<{ name: string }>;
+  tracksByArtist: Record<string, Array<{ name: string; msPlayed: number; count: number; uri: string | null }>>;
+  artistRacingHistory: RacingFrame[];
+  trackRacingHistory: RacingFrame[];
+  artistRacingHistoryHourly: RacingFrame[];
+  trackRacingHistoryHourly: RacingFrame[];
+}
+
+export interface RacingDataPoint {
+  id: string;
+  name: string;
+  subtitle?: string;
+  value: number;
+}
+
+export interface RacingFrame {
+  date: string;
+  data: RacingDataPoint[];
 }

@@ -1,4 +1,4 @@
-import { SpotifyHistoryItem, StatsData } from './types';
+import { SpotifyHistoryItem, StatsData, RacingFrame } from './types';
 import { format } from 'date-fns';
 
 export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
@@ -19,11 +19,64 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
   const uniqueTracks = new Set<string>();
   let totalPlays = 0;
   const discoveryMap: Record<string, string[]> = {};
+  
+  const artistRacingHistory: RacingFrame[] = [];
+  const trackRacingHistory: RacingFrame[] = [];
+  let currentMonthForRacing = "";
+
+  const artistRacingHistoryHourly: RacingFrame[] = [];
+  const trackRacingHistoryHourly: RacingFrame[] = [];
+  let currentHourForRacing = "";
+
+  const captureRacingSnapshot = (period: string, isHourly: boolean) => {
+    const topArtists = Object.entries(artistMap)
+      .map(([name, stats]) => ({ id: name, name, value: stats.count }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 20);
+    const topTracks = Object.values(trackMap)
+      .map(t => ({ id: `${t.name}-${t.artist}`, name: t.name, subtitle: t.artist, value: t.count }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 20);
+    
+    if (isHourly) {
+      if (topArtists.length > 0 && topArtists[0].value > 0) artistRacingHistoryHourly.push({ date: period, data: topArtists });
+      if (topTracks.length > 0 && topTracks[0].value > 0) trackRacingHistoryHourly.push({ date: period, data: topTracks });
+    } else {
+      if (topArtists.length > 0 && topArtists[0].value > 0) artistRacingHistory.push({ date: period, data: topArtists });
+      if (topTracks.length > 0 && topTracks[0].value > 0) trackRacingHistory.push({ date: period, data: topTracks });
+    }
+  };
 
   sortedData.forEach((item) => {
     const isPodcast = item.episode_name !== null || item.audiobook_title !== null;
     const isSong = item.master_metadata_track_name !== null && item.master_metadata_album_artist_name !== null;
     
+    let dayKey = "";
+    let hourKey = "";
+    try {
+      if (item.ts) {
+        const d = new Date(item.ts);
+        dayKey = format(d, "yyyy-MM-dd");
+        hourKey = format(d, "yyyy-MM-dd HH");
+      }
+    } catch(e) {}
+
+    const isSkipped = item.skipped || item.ms_played < 30000;
+
+    // Daily snapshots
+    if (dayKey && currentMonthForRacing && dayKey !== currentMonthForRacing) {
+      captureRacingSnapshot(currentMonthForRacing, false);
+    }
+    if (dayKey && !currentMonthForRacing && !isSkipped) currentMonthForRacing = dayKey;
+    if (dayKey && currentMonthForRacing && dayKey !== currentMonthForRacing) currentMonthForRacing = dayKey;
+
+    // Hourly snapshots
+    if (hourKey && currentHourForRacing && hourKey !== currentHourForRacing) {
+      captureRacingSnapshot(currentHourForRacing, true);
+    }
+    if (hourKey && !currentHourForRacing && !isSkipped) currentHourForRacing = hourKey;
+    if (hourKey && currentHourForRacing && hourKey !== currentHourForRacing) currentHourForRacing = hourKey;
+
     totalMsPlayed += item.ms_played;
 
     if (isSong && !isPodcast) {
@@ -64,8 +117,6 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
       if (!trackMap[trackKey]) {
         trackMap[trackKey] = { name: track, artist: artist, msPlayed: 0, count: 0, uri: item.spotify_track_uri };
       }
-
-      const isSkipped = item.skipped || item.ms_played < 30000;
 
       // Meaningful play
       if (!isSkipped) {
@@ -111,6 +162,9 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
     }
     platformMap[platform] += item.ms_played;
   });
+
+  if (currentMonthForRacing) captureRacingSnapshot(currentMonthForRacing, false);
+  if (currentHourForRacing) captureRacingSnapshot(currentHourForRacing, true);
 
   const allArtistsMapped = Object.entries(artistMap).map(([name, stats]) => ({ name, ...stats }));
   const topArtistsByTime = [...allArtistsMapped].sort((a, b) => b.msPlayed - a.msPlayed).slice(0, 100);
@@ -162,6 +216,19 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
   const oneHitWonders = allArtists.filter(a => a.count === 1).map(a => ({ name: a.name }));
   const oneHitWondersCount = oneHitWonders.length;
 
+  const tracksByArtist: Record<string, Array<{ name: string; msPlayed: number; count: number; uri: string | null }>> = {};
+  allTracksArr.forEach(track => {
+    if (!tracksByArtist[track.artist]) {
+      tracksByArtist[track.artist] = [];
+    }
+    tracksByArtist[track.artist].push({
+      name: track.name,
+      msPlayed: track.msPlayed,
+      count: track.count,
+      uri: track.uri
+    });
+  });
+
   return {
     totalMsPlayed,
     totalHoursPlayed: Math.round(totalMsPlayed / (1000 * 60 * 60)),
@@ -179,6 +246,11 @@ export function processSpotifyData(data: SpotifyHistoryItem[]): StatsData {
     uniqueTracksCount: uniqueTracks.size,
     oneHitWondersCount,
     allArtists,
-    oneHitWonders
+    oneHitWonders,
+    tracksByArtist,
+    artistRacingHistory,
+    trackRacingHistory,
+    artistRacingHistoryHourly,
+    trackRacingHistoryHourly
   };
 }

@@ -12,7 +12,8 @@ import { DiscoveryChart } from "./DiscoveryChart";
 import { ArtistPieChart } from "./ArtistPieChart";
 import { SkippedTracksList } from "./SkippedTracksList";
 import { Modal } from "./Modal";
-import { Clock, Music, Mic2, PlayCircle, Loader2, Disc, Ghost, Compass, Calendar, ChevronDown, Info, Download } from "lucide-react";
+import { BarChartRace } from "./BarChartRace";
+import { Clock, Music, Mic2, PlayCircle, Loader2, Disc, Ghost, Compass, Calendar, ChevronDown, Info, Download, BarChart2, ArrowDownUp, PlaySquare } from "lucide-react";
 import { toPng } from "html-to-image";
 
 export function Dashboard() {
@@ -24,6 +25,12 @@ export function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [totalListeningMode, setTotalListeningMode] = useState<'time' | 'plays'>('time');
   const [uniqueStatsMode, setUniqueStatsMode] = useState<'artists' | 'tracks'>('artists');
+  const [selectedArtistForChart, setSelectedArtistForChart] = useState<string | null>(null);
+  const [artistChartSortOrder, setArtistChartSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [chartAnimation, setChartAnimation] = useState(false);
+  const [raceModalOpen, setRaceModalOpen] = useState(false);
+  const [raceType, setRaceType] = useState<'tracks' | 'artists'>('tracks');
+  const [raceGranularity, setRaceGranularity] = useState<'daily' | 'hourly'>('daily');
 
   const handleDownloadImage = async () => {
     const element = document.getElementById("dashboard-capture");
@@ -71,6 +78,16 @@ export function Dashboard() {
     };
     loadSavedData();
   }, []);
+
+  useEffect(() => {
+    if (selectedArtistForChart) {
+      setChartAnimation(false);
+      const timer = setTimeout(() => setChartAnimation(true), 50);
+      return () => clearTimeout(timer);
+    } else {
+      setChartAnimation(false);
+    }
+  }, [selectedArtistForChart, artistChartSortOrder]);
 
   const handleDataLoaded = async (data: SpotifyHistoryItem[], shouldSave = true) => {
     setIsProcessing(true);
@@ -134,6 +151,12 @@ export function Dashboard() {
 
   const formatHours = (ms: number) => Math.round(ms / (1000 * 60 * 60)).toLocaleString();
 
+  const selectedArtistTracks = selectedArtistForChart && stats.tracksByArtist ? stats.tracksByArtist[selectedArtistForChart] || [] : [];
+  const maxArtistPlays = Math.max(...selectedArtistTracks.map(t => t.count), 1);
+  const sortedArtistTracks = [...selectedArtistTracks].sort((a, b) => 
+    artistChartSortOrder === 'desc' ? b.count - a.count : a.count - b.count
+  );
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 relative bg-[#0a0a0a] p-6 md:p-10 rounded-3xl border border-zinc-900 shadow-2xl" id="dashboard-capture">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -144,6 +167,13 @@ export function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3" data-html2canvas-ignore="true">
+          <button 
+            onClick={() => setRaceModalOpen(true)}
+            className="text-sm bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2 rounded-full transition-colors flex items-center gap-2 shadow-lg shadow-purple-500/20"
+          >
+            <PlaySquare className="w-4 h-4" />
+            Watch Race
+          </button>
           <button 
             onClick={handleDownloadImage}
             disabled={isExporting}
@@ -244,6 +274,8 @@ export function Dashboard() {
                 title="Top Artists"
                 icon={<Mic2 className="w-5 h-5" />}
                 defaultSort="time"
+                actionIcon={<BarChart2 className="w-4 h-4" />}
+                onItemAction={(item) => setSelectedArtistForChart(item.title)}
                 itemsByTime={stats.topArtistsByTime.slice(0, 50).map(a => ({
                   id: a.name,
                   title: a.name,
@@ -404,6 +436,104 @@ export function Dashboard() {
             </div>
           </>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={!!selectedArtistForChart}
+        onClose={() => {
+          setSelectedArtistForChart(null);
+          setArtistChartSortOrder('desc');
+        }}
+        title={`${selectedArtistForChart} - Track Stats`}
+      >
+        <div className="flex justify-between items-center mb-6">
+          <p className="text-zinc-400 text-sm">Play counts for individual tracks</p>
+          <button 
+            onClick={() => setArtistChartSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+            className="flex items-center gap-2 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3 py-1.5 rounded-md transition-colors"
+          >
+            <ArrowDownUp className="w-3 h-3" />
+            {artistChartSortOrder === 'desc' ? 'Most Played' : 'Least Played'}
+          </button>
+        </div>
+        <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+          {sortedArtistTracks.length > 0 ? (
+            sortedArtistTracks.map((track, i) => {
+              const widthPct = Math.max((track.count / maxArtistPlays) * 100, 1);
+              return (
+                <div key={`${track.name}-${i}`} className="group relative bg-zinc-800/30 rounded-lg p-2.5 flex items-center justify-between border border-zinc-700/30 overflow-hidden">
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 bg-green-500/20 z-0 transition-all duration-700 ease-out"
+                    style={{ width: chartAnimation ? `${widthPct}%` : '0%' }}
+                  />
+                  <div className="relative z-10 flex items-center gap-3 min-w-0 flex-1">
+                    <span className="text-zinc-500 font-mono text-xs w-6 shrink-0 text-right">{i + 1}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-zinc-200 text-sm font-medium truncate" title={track.name}>
+                        {track.name}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="relative z-10 text-green-400 font-mono text-xs ml-4 shrink-0 font-bold bg-zinc-900/50 px-2 py-1 rounded">
+                    {track.count} plays
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="text-zinc-500 text-sm text-center py-8">No track data available.</p>
+          )}
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={raceModalOpen}
+        onClose={() => setRaceModalOpen(false)}
+        title="Time-Lapse Racing"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800 shadow-inner">
+              <button 
+                onClick={() => setRaceType('tracks')}
+                className={`px-6 py-1.5 rounded-md text-sm font-bold transition-all ${raceType === 'tracks' ? 'bg-zinc-800 text-green-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Top Tracks
+              </button>
+              <button 
+                onClick={() => setRaceType('artists')}
+                className={`px-6 py-1.5 rounded-md text-sm font-bold transition-all ${raceType === 'artists' ? 'bg-zinc-800 text-purple-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Top Artists
+              </button>
+            </div>
+
+            <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800 shadow-inner">
+              <button 
+                onClick={() => setRaceGranularity('daily')}
+                className={`px-6 py-1.5 rounded-md text-sm font-bold transition-all ${raceGranularity === 'daily' ? 'bg-zinc-800 text-orange-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Daily
+              </button>
+              <button 
+                onClick={() => setRaceGranularity('hourly')}
+                className={`px-6 py-1.5 rounded-md text-sm font-bold transition-all ${raceGranularity === 'hourly' ? 'bg-zinc-800 text-blue-400 shadow-sm' : 'text-zinc-500 hover:text-zinc-300'}`}
+              >
+                Hourly
+              </button>
+            </div>
+          </div>
+          
+          <div className="h-[600px] w-full bg-black/40 rounded-xl border border-zinc-800/50 overflow-hidden relative">
+            <BarChartRace 
+              frames={
+                raceType === 'tracks' 
+                  ? (raceGranularity === 'daily' ? stats.trackRacingHistory : stats.trackRacingHistoryHourly)
+                  : (raceGranularity === 'daily' ? stats.artistRacingHistory : stats.artistRacingHistoryHourly)
+              } 
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   );
